@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -12,5 +14,5 @@ import lombok.NoArgsConstructor;
 public class Person {
     private Integer id;
     private String name;
-    private Integer[] participatingInMeetingIds;
+    private List<Integer> participatingInMeetingIds;
 }

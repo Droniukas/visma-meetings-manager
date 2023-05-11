@@ -22,5 +22,5 @@ public class MeetingDto {
     private String type; // implement enum for this
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Person[] participants;
+    private List<Person> participants;
 }
