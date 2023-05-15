@@ -1,6 +1,8 @@
-package com.visma.meetingsmanager.dto;
+package com.visma.meetingsmanager.dtos;
 
-import com.visma.meetingsmanager.model.Person;
+import com.visma.meetingsmanager.enums.MeetingCategory;
+import com.visma.meetingsmanager.enums.MeetingType;
+import com.visma.meetingsmanager.models.Person;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,12 +16,11 @@ import java.util.List;
 @Builder
 @Data
 public class MeetingDto {
-    private Integer id;
     private String name;
     private Person ResponsiblePerson;
     private String description;
-    private String category; // implement enum for this
-    private String type; // implement enum for this
+    private MeetingCategory category;
+    private MeetingType type;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private List<Person> participants;
