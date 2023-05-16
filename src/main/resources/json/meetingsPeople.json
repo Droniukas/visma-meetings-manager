@@ -1,1 +1,7 @@
-[{"meetingName":"Anpther meeting","personName":"Jonas","dateAdded":"2023-05-16T23:11:16.0189115"}]
+[
+  {
+    "meetingName": "Anpther meeting",
+    "personName": "Jonas",
+    "dateAdded": "2023-05-16T23:11:16.0189115"
+  }
+]

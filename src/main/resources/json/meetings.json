@@ -1,1 +1,11 @@
-[{"name":"Anpther meeting","responsiblePersonName":"Jonas","description":"Please join","category":"CodeMonkey","type":"InPerson","startDate":"2023-05-16T23:41:00","endDate":"2056-01-13T17:12:42.411"}]
+[
+  {
+    "name": "Anpther meeting",
+    "responsiblePersonName": "Jonas",
+    "description": "Please join",
+    "category": "CodeMonkey",
+    "type": "InPerson",
+    "startDate": "2023-05-16T23:41:00",
+    "endDate": "2056-01-13T17:12:42.411"
+  }
+]

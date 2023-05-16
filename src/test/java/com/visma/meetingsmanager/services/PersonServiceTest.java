@@ -26,8 +26,12 @@ class PersonServiceTest {
     void getPeopleByNames() {
         Person firstPerson = new Person("Tadas", 22);
         Person secondPerson = new Person("Vilius", 25);
+        List<Person> expectedPeople = List.of(firstPerson, secondPerson);
         when(personRepository.getAll())
-                .thenReturn(List.of(firstPerson, secondPerson));
+                .thenReturn(expectedPeople);
+
+        List<Person> actualPeople = underTest.getPeopleByNames(List.of("Tadas", "Vilius"));
+        assertThat(expectedPeople).isEqualTo(actualPeople);
     }
 
     @Test
