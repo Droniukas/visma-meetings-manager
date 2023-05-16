@@ -7,14 +7,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.visma.meetingsmanager.exceptions.ApiRequestException;
 import com.visma.meetingsmanager.models.Meeting;
 import com.visma.meetingsmanager.models.MeetingPerson;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -22,8 +24,11 @@ public class MeetingRepository {
 
     private final ObjectMapper objectMapper = getObjectMapper();
 
-    private final String MEETINGS_FILEPATH = "src/main/resources/json/meetings.json";
-    private final String MEETINGS_PERSON_FILEPATH = "src/main/resources/json/meetingsPeople.json";
+    @Value("${meetings.file.path}")
+    private String MEETINGS_FILEPATH;
+
+    @Value("${meetingsPeople.file.path}")
+    private String MEETINGS_PERSON_FILEPATH;
 
     public List<Meeting> getAll() {
         try {
@@ -31,8 +36,7 @@ public class MeetingRepository {
             return objectMapper.readValue(reader, new TypeReference<List<Meeting>>() {
             });
         } catch (IOException e) {
-            System.out.println("Could not read from meetings.json file: " + e.getMessage());
-            return new ArrayList<Meeting>();
+            throw new ApiRequestException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -41,7 +45,7 @@ public class MeetingRepository {
             FileWriter writer = new FileWriter(MEETINGS_FILEPATH);
             objectMapper.writeValue(writer, meetings);
         } catch (IOException e) {
-            System.out.println("Could not write to file: " + e.getMessage());
+            throw new ApiRequestException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -51,8 +55,7 @@ public class MeetingRepository {
             return objectMapper.readValue(reader, new TypeReference<List<MeetingPerson>>() {
             });
         } catch (IOException e) {
-            System.out.println("Could not read from meetingsPeople.json file: " + e.getMessage());
-            return new ArrayList<MeetingPerson>();
+            throw new ApiRequestException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -61,7 +64,7 @@ public class MeetingRepository {
             FileWriter writer = new FileWriter(MEETINGS_PERSON_FILEPATH);
             objectMapper.writeValue(writer, meetingsPeople);
         } catch (IOException e) {
-            System.out.println("Could not write to file: " + e.getMessage());
+            throw new ApiRequestException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

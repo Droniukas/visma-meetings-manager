@@ -1,5 +1,6 @@
 package com.visma.meetingsmanager.exceptions;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -8,10 +9,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
@@ -65,11 +68,37 @@ public class ApplicationExceptionHandler {
         return new ResponseEntity<>(apiException, badRequest);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiException> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String name = ex.getName();
+        String type = Objects.requireNonNull(ex.getRequiredType()).getSimpleName();
+        Object value = ex.getValue();
+        String message = "Invalid value '" + name + "', should be of type '" + type + "' and '" + value + "' is not";
+        HttpStatus badRequest = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(
+                message,
+                badRequest,
+                ZonedDateTime.now(),
+                null);
+        return new ResponseEntity<>(apiException, badRequest);
+    }
+
     @ExceptionHandler({HttpMessageNotReadableException.class})
     public ResponseEntity<ApiException> handleJsonParseExceptions(HttpMessageNotReadableException e) {
         HttpStatus badRequest = HttpStatus.BAD_REQUEST;
         ApiException apiException = new ApiException(
                 "Invalid request data (parsing exception)",
+                badRequest,
+                ZonedDateTime.now(),
+                null);
+        return new ResponseEntity<>(apiException, badRequest);
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity<ApiException> handleConstraintViolationException(ConstraintViolationException e) {
+        HttpStatus badRequest = HttpStatus.BAD_REQUEST;
+        ApiException apiException = new ApiException(
+                e.getMessage(),
                 badRequest,
                 ZonedDateTime.now(),
                 null);

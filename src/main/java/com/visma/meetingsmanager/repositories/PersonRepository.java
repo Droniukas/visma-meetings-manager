@@ -7,12 +7,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.visma.meetingsmanager.exceptions.ApiRequestException;
 import com.visma.meetingsmanager.models.Person;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -20,16 +22,16 @@ public class PersonRepository {
 
     private final ObjectMapper objectMapper = getObjectMapper();
 
-    private final String FILENAME = "src/main/resources/json/people.json";
+    @Value("${person.file.path}")
+    private String PERSON_FILEPATH;
 
     public List<Person> getAll() {
         try {
-            FileReader reader = new FileReader(FILENAME);
+            FileReader reader = new FileReader(PERSON_FILEPATH);
             return objectMapper.readValue(reader, new TypeReference<List<Person>>() {
             });
         } catch (IOException e) {
-            System.out.println("Could not read from person.json file: " + e.getMessage());
-            return new ArrayList<Person>();
+            throw new ApiRequestException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -41,5 +43,4 @@ public class PersonRepository {
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
                 .build().registerModule(new JavaTimeModule());
     }
-
 }

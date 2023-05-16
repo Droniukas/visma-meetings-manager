@@ -31,8 +31,7 @@ public class MeetingService {
     private MeetingDto getMeetingByName(String meetingName) {
         List<Meeting> meetings = meetingRepository.getAll();
         Meeting foundMeeting = meetings.stream().filter(meeting -> meeting.getName().equals(meetingName)).findFirst().orElse(null);
-        if (foundMeeting == null)
-            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Meeting is not found");
+        if (foundMeeting == null) return null;
         return new MeetingDto(
                 foundMeeting.getName(),
                 personService.getPersonByName(foundMeeting.getResponsiblePersonName()),
@@ -49,6 +48,10 @@ public class MeetingService {
     public MeetingDto createNewMeeting(Meeting newMeeting) {
         List<Meeting> meetings = meetingRepository.getAll();
 
+        if (newMeeting.getStartDate().isBefore(LocalDateTime.now()))
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Meeting start date must be in the future");
+        if (newMeeting.getEndDate().isBefore(newMeeting.getStartDate()))
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "End date cannot be before start date");
         if (meetings.stream().anyMatch(meeting -> meeting.getName().equals(newMeeting.getName())))
             throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Meeting name must be unique");
         if (personService.getPersonByName(newMeeting.getResponsiblePersonName()) == null)
@@ -65,8 +68,10 @@ public class MeetingService {
         List<Meeting> meetings = meetingRepository.getAll();
         MeetingDto meetingToDelete = getMeetingByName(meetingName);
 
+        if (meetingToDelete == null)
+            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided meeting doesn't exist");
         if (!meetingToDelete.getResponsiblePerson().getName().equals(personName))
-            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Provided person is not the responsible person");
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Provided person is not responsible for the meeting");
 
         meetings.removeIf(meeting -> meeting.getName().equals(meetingName));
         removeMeetingPersonRelationshipsByMeetingName(meetingName);
@@ -83,6 +88,13 @@ public class MeetingService {
                                         LocalDate startDate,
                                         LocalDate endDate,
                                         Integer numberOfParticipants) {
+        if (startDate == null && endDate != null)
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "End date cannot exist without start date");
+        if (startDate != null && startDate.atStartOfDay().plusDays(1).isBefore(LocalDateTime.now()))
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Meeting start date must be in the future");
+        if (endDate != null && endDate.isBefore(startDate))
+            throw new ApiRequestException(HttpStatus.BAD_REQUEST, "End date cannot be before start date");
+
         List<MeetingDto> meetingDtos = getAllUnfilteredMeetings();
 
         Predicate<MeetingDto> filterCondition = meeting -> true;
@@ -102,7 +114,7 @@ public class MeetingService {
         filterCondition = getNewFilterCondition(startDate, filterCondition, meeting -> {
             LocalDateTime meetingStartDate = meeting.getStartDate();
             return (meetingStartDate.isAfter(startDate.atStartOfDay())
-                    && (endDate == null || meetingStartDate.isBefore(endDate.atStartOfDay())));
+                    && (endDate == null || meetingStartDate.isBefore(endDate.atStartOfDay().plusDays(1))));
         });
 
         filterCondition = getNewFilterCondition(numberOfParticipants, filterCondition, meeting ->
@@ -147,10 +159,10 @@ public class MeetingService {
 
         if (getParticipantsNamesByMeetingName(meetingName).contains(personName))
             throw new ApiRequestException(HttpStatus.BAD_REQUEST, "This person is already in the meeting");
-        if (getMeetingByName(meetingName) == null) // paklaust del situ kaip reiktu daryt..
+        if (getMeetingByName(meetingName) == null)
             throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided meeting doesn't exist");
         if (personService.getPersonByName(personName) == null)
-            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided person doesn't exist"); // message is universal but the use cases are not..
+            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided person doesn't exist");
 
         LocalDateTime currentTime = LocalDateTime.now();
         meetingsPeople.add(new MeetingPerson(meetingName, personName, currentTime));
@@ -161,8 +173,11 @@ public class MeetingService {
 
     public MeetingPersonDto removeMeetingPersonRelationship(String meetingName, String personName) {
         List<MeetingPerson> meetingsPeople = meetingRepository.getAllMeetingsPeopleRelationships();
+        MeetingDto meetingByName = getMeetingByName(meetingName);
 
-        if (getMeetingByName(meetingName).getResponsiblePerson().getName().equals(personName))
+        if (meetingByName == null)
+            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided meeting doesn't exist");
+        if (meetingByName.getResponsiblePerson().getName().equals(personName))
             throw new ApiRequestException(HttpStatus.BAD_REQUEST, "Cannot delete the person responsible for the meeting");
 
         MeetingPerson personToRemoveFromMeeting = meetingsPeople.stream().filter(meetingPerson ->
@@ -170,11 +185,11 @@ public class MeetingService {
         ).findFirst().orElse(null);
 
         if (personToRemoveFromMeeting == null)
-            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Person is not Found");
+            throw new ApiRequestException(HttpStatus.NOT_FOUND, "Provided person is not in the meeting");
 
         MeetingPersonDto personToDeleteDto = new MeetingPersonDto(
                 personService.getPersonByName(personName),
-                personToRemoveFromMeeting.getDateCreated()
+                personToRemoveFromMeeting.getDateAdded()
         );
 
         meetingsPeople.removeIf(meetingPerson -> Objects.deepEquals(meetingPerson, personToRemoveFromMeeting));
@@ -185,10 +200,8 @@ public class MeetingService {
 
     private void removeMeetingPersonRelationshipsByMeetingName(String meetingName) {
         List<MeetingPerson> meetingsPeople = meetingRepository.getAllMeetingsPeopleRelationships();
+        meetingsPeople.removeIf(meetingPerson -> meetingPerson.getMeetingName().equals(meetingName));
 
-        List<MeetingPerson> newMeetingsPeople = meetingsPeople.stream().filter(meetingPerson ->
-                !meetingPerson.getMeetingName().equals(meetingName)).toList();
-
-        meetingRepository.saveAllMeetingsPeopleRelationships(newMeetingsPeople);
+        meetingRepository.saveAllMeetingsPeopleRelationships(meetingsPeople);
     }
 }

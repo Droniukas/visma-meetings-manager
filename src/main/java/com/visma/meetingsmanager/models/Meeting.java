@@ -27,7 +27,6 @@ public class Meeting {
     @NotNull
     private MeetingType type;
     @NotNull
-    //    make sure to properly validate dates and exception handling for them
     private LocalDateTime startDate;
     @NotNull
     private LocalDateTime endDate;

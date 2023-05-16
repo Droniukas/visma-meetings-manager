@@ -14,5 +14,5 @@ import java.time.LocalDateTime;
 public class MeetingPerson {
     private String meetingName;
     private String personName;
-    private LocalDateTime dateCreated;
+    private LocalDateTime dateAdded;
 }

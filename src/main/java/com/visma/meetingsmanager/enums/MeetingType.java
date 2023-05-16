@@ -1,9 +1,11 @@
 package com.visma.meetingsmanager.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.visma.meetingsmanager.exceptions.ApiRequestException;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,14 +24,6 @@ public enum MeetingType {
         return value;
     }
 
-    //    public static MeetingType valueOfLabel(String label) {
-//        for (MeetingType e : values()) {
-//            if (e.value.equals(label)) {
-//                return e;
-//            }
-//        }
-//        return null;
-//    }
     private static final Map<String, @NotNull MeetingType> BY_VALUE = new HashMap<>();
 
     static {
@@ -39,6 +33,11 @@ public enum MeetingType {
     }
 
     public static MeetingType valueOfLabel(String label) {
+        if (BY_VALUE.get(label) == null && label != null)
+            throw new ApiRequestException(
+                    HttpStatus.BAD_REQUEST,
+                    "invalid value '" + label + "', should be of type 'Live' or 'InPerson'"
+            );
         return BY_VALUE.get(label);
     }
 }

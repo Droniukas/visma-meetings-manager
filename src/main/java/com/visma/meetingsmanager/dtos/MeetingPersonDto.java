@@ -14,5 +14,5 @@ import java.time.LocalDateTime;
 @Data
 public class MeetingPersonDto {
     private Person person;
-    private LocalDateTime dateCreated;
+    private LocalDateTime dateAdded;
 }

@@ -7,9 +7,10 @@ import com.visma.meetingsmanager.enums.MeetingType;
 import com.visma.meetingsmanager.models.Meeting;
 import com.visma.meetingsmanager.services.MeetingService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ import java.util.List;
 import static com.visma.meetingsmanager.MeetingsManagerApplication.BASE_URL;
 
 @RestController
+@Validated
 @RequestMapping(value = BASE_URL + "/meetings")
 public class MeetingController {
 
@@ -45,8 +47,8 @@ public class MeetingController {
             @RequestParam(value = "category", required = false) String meetingCategory,
             @RequestParam(value = "type", required = false) String meetingType,
             @RequestParam(value = "startDate", required = false) LocalDate startDate,
-            @Valid @RequestParam(value = "endDate", required = false) @DateTimeFormat(pattern = "yyyy/mm/dd") LocalDate endDate,
-            @RequestParam(value = "numberOfParticipants", required = false) Integer numberOfParticipants
+            @RequestParam(value = "endDate", required = false) LocalDate endDate,
+            @RequestParam(value = "numberOfParticipants", required = false) @Min(1) Integer numberOfParticipants
     ) {
         return meetingService.getMeetings(
                 description,
