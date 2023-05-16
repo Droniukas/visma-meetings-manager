@@ -16,7 +16,6 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -35,9 +34,9 @@ class PersonRepositoryTest {
 
     @AfterEach
     void tearDown() throws IOException {
-        ArrayList<Object> emptyList = new ArrayList<>();
+        List<Person> initalPeople = List.of(new Person("Tadas", 22), new Person("Vilius", 25));
         FileWriter peopleTestFileWriter = new FileWriter(PERSON_TEST_FILEPATH);
-        objectMapper.writeValue(peopleTestFileWriter, emptyList);
+        objectMapper.writeValue(peopleTestFileWriter, initalPeople);
     }
 
     @Test

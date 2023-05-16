@@ -7,5 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 class MeetingsManagerApplicationTests {
     @Test
     void name() {
+
     }
 }
